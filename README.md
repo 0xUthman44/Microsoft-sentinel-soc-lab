@@ -1,6 +1,6 @@
 # Microsoft Sentinel SOC Lab
 
-A low-cost Microsoft Sentinel portfolio lab covering endpoint telemetry onboarding, KQL investigation and event correlation across five controlled security scenarios.
+A Microsoft Sentinel portfolio lab covering endpoint telemetry onboarding, KQL investigation and event correlation across five controlled security scenarios.
 
 > **Note:** Every scenario in this repository is a controlled simulation run in an isolated lab. The outbound network test and the failed logons were generated deliberately for validation. None of the activity represents a real compromise.
 
