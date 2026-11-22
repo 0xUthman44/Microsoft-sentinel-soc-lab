@@ -1,0 +1,24 @@
+Event
+| where TimeGenerated > ago(24h)
+| where Computer =~ "ENT-WKS-01"
+| where EventLog == "Microsoft-Windows-Sysmon/Operational"
+| where EventID == 3
+| extend ProcessPath = extract(@"Image:\s*(.*?)\s+User:", 1, RenderedDescription)
+| extend Username = extract(@"User:\s*(.*?)\s+Protocol:", 1, RenderedDescription)
+| extend Protocol = extract(@"Protocol:\s*(.*?)\s+Initiated:", 1, RenderedDescription)
+| extend SourceIP = extract(@"SourceIp:\s*(\S+)", 1, RenderedDescription)
+| extend DestinationIP = extract(@"DestinationIp:\s*(\S+)", 1, RenderedDescription)
+| extend DestinationPort = extract(@"DestinationPort:\s*(\d+)", 1, RenderedDescription)
+| extend Initiated = extract(@"Initiated:\s*(\S+)", 1, RenderedDescription)
+| where ProcessPath contains "powershell.exe"
+| project
+    TimeGenerated,
+    Computer,
+    Username,
+    ProcessPath,
+    SourceIP,
+    DestinationIP,
+    DestinationPort,
+    Protocol,
+    Initiated
+| order by TimeGenerated desc

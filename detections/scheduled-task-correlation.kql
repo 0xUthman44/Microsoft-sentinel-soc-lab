@@ -1,0 +1,17 @@
+// Consolidated timeline for WindowsUpdateCheckSimulation.
+// Fixed UTC window used during the original investigation.
+Event
+| where TimeGenerated between (
+    datetime(2026-11-20T23:09:00Z) ..
+    datetime(2026-11-20T23:14:30Z)
+)
+| where Computer =~ "ENT-WKS-01"
+| where EventID in (4104, 4688, 4698)
+| extend EventType = case(
+    EventID == 4104, "PowerShell Script Block",
+    EventID == 4688, "Process Creation",
+    EventID == 4698, "Scheduled Task Created",
+    "Other"
+)
+| project TimeGenerated, EventID, EventType, EventLog, RenderedDescription
+| order by TimeGenerated asc

@@ -1,0 +1,17 @@
+// Successful (4624) and failed (4625) logons on ENT-WKS-01 in a fixed UTC window.
+// Same extraction as authentication-investigation.kql; the window covers the controlled
+// remote SMB test and returned the records shown in Scenario 05. Adjust for later reproductions.
+Event
+| where TimeGenerated between (datetime(2026-11-21T23:00:00Z) .. datetime(2026-11-22T00:00:00Z))
+| where Computer =~ "ENT-WKS-01"
+| where EventLog == "Security"
+| where EventID in (4624, 4625)
+| extend EventType = iff(EventID == 4624, "Successful Logon", "Failed Logon")
+| extend LogonType = extract(@"Logon Type:\s*(\d+)", 1, RenderedDescription)
+| extend TargetAccount = extract(@"(?:New Logon|Account For Which Logon Failed):[\s\S]*?Account Name:\s*(\S+)", 1, RenderedDescription)
+| extend SourceIP = extract(@"Source Network Address:\s*(\S+)", 1, RenderedDescription)
+| extend Workstation = extract(@"Workstation Name:\s*(\S+)", 1, RenderedDescription)
+| extend AuthPackage = extract(@"Authentication Package:\s*(\S+)", 1, RenderedDescription)
+| extend FailureReason = extract(@"Failure Reason:\s*(.*?)\s+Status:", 1, RenderedDescription)
+| project TimeGenerated, EventID, EventType, TargetAccount, LogonType, SourceIP, Workstation, AuthPackage, FailureReason
+| order by TimeGenerated desc

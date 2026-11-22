@@ -1,0 +1,17 @@
+// PowerShell script-block discovery activity (Event ID 4104).
+// Reference query for the controlled discovery commands used in this lab.
+Event
+| where TimeGenerated > ago(24h)
+| where Computer =~ "ENT-WKS-01"
+| where EventID == 4104
+| where EventLog == "Microsoft-Windows-PowerShell/Operational"
+| where RenderedDescription has_any (
+    "whoami.exe",
+    "hostname.exe",
+    "ipconfig.exe",
+    "systeminfo.exe",
+    "net.exe user",
+    "net.exe localgroup administrators"
+)
+| project TimeGenerated, Computer, EventID, EventLog, RenderedDescription
+| order by TimeGenerated desc

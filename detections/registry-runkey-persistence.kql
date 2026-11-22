@@ -1,0 +1,25 @@
+Event
+| where TimeGenerated > ago(24h)
+| where Computer =~ "ENT-WKS-01"
+| where EventLog == "Microsoft-Windows-Sysmon/Operational"
+| where EventID == 13
+| extend RegistryPath = extract(
+    @"TargetObject:\s*(.*?)\s+Details:",
+    1,
+    RenderedDescription
+)
+| extend RegistryData = extract(
+    @"Details:\s*(.*?)\s+User:",
+    1,
+    RenderedDescription
+)
+| where RegistryPath contains @"\CurrentVersion\Run"
+    or RegistryPath contains @"\CurrentVersion\RunOnce"
+| extend RegistryValue = tostring(split(RegistryPath, @"\")[-1])
+| project
+    TimeGenerated,
+    Computer,
+    RegistryPath,
+    RegistryValue,
+    RegistryData
+| order by TimeGenerated desc

@@ -1,0 +1,25 @@
+// PowerShell script-block discovery activity (Event ID 4104), labelled by discovery category.
+// Fixed UTC window used when validating Scenario 01 (returned 11 records).
+// Adjust the window for later reproductions.
+Event
+| where TimeGenerated between (
+    datetime(2026-11-20T19:00:00Z) ..
+    datetime(2026-11-20T21:00:00Z)
+)
+| where Computer =~ "ENT-WKS-01"
+| where EventLog == "Microsoft-Windows-PowerShell/Operational"
+| where EventID == 4104
+| extend DiscoveryCategory = case(
+    RenderedDescription contains "whoami", "Identity and group discovery",
+    RenderedDescription contains "net.exe localgroup", "Local group discovery",
+    RenderedDescription contains "net.exe user", "Local account discovery",
+    RenderedDescription contains "Get-LocalUser", "Local account discovery",
+    RenderedDescription contains "Get-Process", "Process discovery",
+    RenderedDescription contains "hostname.exe", "Host discovery",
+    RenderedDescription contains "ipconfig.exe", "Network configuration discovery",
+    RenderedDescription contains "systeminfo.exe", "System information discovery",
+    "Other"
+)
+| where DiscoveryCategory != "Other"
+| project TimeGenerated, Computer, DiscoveryCategory, RenderedDescription
+| order by TimeGenerated desc

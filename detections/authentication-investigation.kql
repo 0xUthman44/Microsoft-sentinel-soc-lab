@@ -1,0 +1,47 @@
+Event
+| where TimeGenerated > ago(24h)
+| where Computer =~ "ENT-WKS-01"
+| where EventLog == "Security"
+| where EventID in (4624, 4625)
+| extend EventType = iff(EventID == 4624, "Successful Logon", "Failed Logon")
+| extend LogonType = extract(
+    @"Logon Type:\s*(\d+)",
+    1,
+    RenderedDescription
+)
+| extend TargetAccount = extract(
+    @"(?:New Logon|Account For Which Logon Failed):[\s\S]*?Account Name:\s*(\S+)",
+    1,
+    RenderedDescription
+)
+| extend SourceIP = extract(
+    @"Source Network Address:\s*(\S+)",
+    1,
+    RenderedDescription
+)
+| extend Workstation = extract(
+    @"Workstation Name:\s*(\S+)",
+    1,
+    RenderedDescription
+)
+| extend AuthPackage = extract(
+    @"Authentication Package:\s*(\S+)",
+    1,
+    RenderedDescription
+)
+| extend FailureReason = extract(
+    @"Failure Reason:\s*(.*?)\s+Status:",
+    1,
+    RenderedDescription
+)
+| project
+    TimeGenerated,
+    EventID,
+    EventType,
+    TargetAccount,
+    LogonType,
+    SourceIP,
+    Workstation,
+    AuthPackage,
+    FailureReason
+| order by TimeGenerated desc
